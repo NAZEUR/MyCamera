@@ -50,9 +50,14 @@ class CameraActivity : AppCompatActivity() {
                 }
 
                 @SuppressLint("SetTextI18n")
-                override fun onResults(results: MutableList<Detection>?, inferenceTime: Long) {
+                override fun onResults(results: MutableList<Detection>?, inferenceTime: Long, imageHeight: Int, imageWidth: Int) {
                     runOnUiThread {
                         results?.let { detections ->
+                            // Send detection results to the OverlayView for drawing
+                            binding.overlay.setResults(detections, imageHeight, imageWidth)
+                            binding.overlay.invalidate()  // Redraw the OverlayView
+
+                            // Update the result and inference time text views
                             val builder = StringBuilder()
                             for (detection in detections) {
                                 val category = detection.categories.firstOrNull()
@@ -67,8 +72,10 @@ class CameraActivity : AppCompatActivity() {
                             binding.tvResult.visibility = View.VISIBLE
                             binding.tvInferenceTime.text = "$inferenceTime ms"
                         } ?: run {
+                            // Clear results if no detections
                             binding.tvResult.text = ""
                             binding.tvInferenceTime.text = ""
+                            binding.overlay.clear()  // Clear overlay if no results
                         }
                     }
                 }
